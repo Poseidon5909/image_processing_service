@@ -17,6 +17,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import uuid
 from fastapi.responses import FileResponse
+from io import BytesIO
 from app.models import ImageTransformation, Image
 from app.services.image_transformer import save_image_with_options
 from app.services.image_transformer import(
@@ -27,7 +28,9 @@ from app.services.image_transformer import(
     rotate_image,
     flip_horizontal,
     flip_vertical,
-    mirror_image
+    mirror_image,
+    grayscale_image,
+    sepia_image
 )
 
 
@@ -246,6 +249,12 @@ async def transform_image(
     elif action == "mirror":
         image = mirror_image(image)
 
+    elif action == "grayscale":
+        image = grayscale_image(image)
+
+    elif action == "sepia":
+        image = sepia_image(image)
+
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
 
@@ -265,11 +274,7 @@ async def transform_image(
     storage = get_storage()
 
     output_path = await storage.save(
-        file=UploadFile(
-            filename=output_filename,
-            file=buffer,
-            content_type=f"image/{output_format.lower()}"
-        )
+        file=UploadFile(file=buffer, filename=output_filename)
     )
 
     # Track used parameters

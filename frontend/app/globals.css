@@ -31,3 +31,56 @@ div[style*="boxShadow"]:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
   cursor: default;
 }
+
+/* Loading Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Button Hover Effects */
+button:not(:disabled):hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  nav {
+    padding: 16px 20px !important;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  nav > div {
+    flex-direction: column;
+    gap: 12px !important;
+  }
+  
+  /* Dashboard adjustments */
+  main {
+    padding: 20px 16px !important;
+  }
+  
+  h1 {
+    font-size: 24px !important;
+  }
+  
+  h2 {
+    font-size: 18px !important;
+  }
+  
+  /* Grid adjustments */
+  [style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1,4 +1,6 @@
 import Navbar from "@/components/Navbar";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -8,8 +10,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        {children}
+        <ErrorBoundary>
+          <Navbar />
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );

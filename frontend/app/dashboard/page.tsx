@@ -2,32 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated, logout, uploadImage, getUserImages } from "@/lib/api";
+import { logout, getUserImages } from "@/lib/api";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import UploadForm from "@/components/UploadForm";
+import ImageCard from "@/components/ImageCard";
+import withAuth from "@/components/withAuth";
 
-export default function DashboardPage() {
+interface Image {
+  id: number;
+  filename: string;
+  created_at: string;
+  transformation_count: number;
+}
+
+function DashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  
-  // Upload form state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-  const [uploadSuccess, setUploadSuccess] = useState("");
   
   // Images list state
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<Image[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
   const [imagesError, setImagesError] = useState("");
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated()) {
-      router.push("/login");
-    } else {
-      setLoading(false);
-      fetchImages();
-    }
-  }, [router]);
+    fetchImages();
+  }, []);
 
   const fetchImages = async () => {
     setLoadingImages(true);
@@ -42,54 +40,10 @@ export default function DashboardPage() {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-      setUploadError("");
-      setUploadSuccess("");
-    }
-  };
-
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedFile) {
-      setUploadError("Please select a file");
-      return;
-    }
-
-    setUploading(true);
-    setUploadError("");
-    setUploadSuccess("");
-
-    try {
-      await uploadImage(selectedFile);
-      setUploadSuccess("Image uploaded successfully!");
-      setSelectedFile(null);
-      // Reset file input
-      const fileInput = document.getElementById("fileInput") as HTMLInputElement;
-      if (fileInput) fileInput.value = "";
-      // Refresh images list
-      fetchImages();
-    } catch (err: any) {
-      setUploadError(err.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleLogout = () => {
     logout();
     router.push("/login");
   };
-
-  if (loading) {
-    return (
-      <main style={styles.container}>
-        <p>Loading...</p>
-      </main>
-    );
-  }
 
   return (
     <main style={styles.container}>
@@ -103,39 +57,14 @@ export default function DashboardPage() {
       {/* Upload Form */}
       <div style={styles.card}>
         <h2 style={styles.cardTitle}>Upload Image</h2>
-        <form onSubmit={handleUpload} style={styles.uploadForm}>
-          <input
-            id="fileInput"
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            style={styles.fileInput}
-          />
-          
-          {selectedFile && (
-            <p style={styles.selectedFile}>
-              Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-            </p>
-          )}
-          
-          <button 
-            type="submit" 
-            style={styles.uploadButton}
-            disabled={!selectedFile || uploading}
-          >
-            {uploading ? "Uploading..." : "Upload Image"}
-          </button>
-          
-          {uploadError && <div style={styles.error}>{uploadError}</div>}
-          {uploadSuccess && <div style={styles.success}>{uploadSuccess}</div>}
-        </form>
+        <UploadForm onUploadSuccess={fetchImages} />
       </div>
 
       {/* Images List */}
       <div style={styles.card}>
         <h2 style={styles.cardTitle}>Your Images</h2>
         
-        {loadingImages && <p>Loading images...</p>}
+        {loadingImages && <LoadingSpinner size="medium" />}
         {imagesError && <div style={styles.error}>{imagesError}</div>}
         
         {!loadingImages && images.length === 0 && (
@@ -145,17 +74,11 @@ export default function DashboardPage() {
         {!loadingImages && images.length > 0 && (
           <div style={styles.imageGrid}>
             {images.map((image) => (
-              <div key={image.id} style={styles.imageCard}>
-                <div style={styles.imageInfo}>
-                  <p style={styles.imageName}>{image.filename}</p>
-                  <p style={styles.imageMeta}>
-                    Uploaded: {new Date(image.created_at).toLocaleDateString()}
-                  </p>
-                  <p style={styles.imageMeta}>
-                    Transformations: {image.transformation_count}
-                  </p>
-                </div>
-              </div>
+              <ImageCard 
+                key={image.id} 
+                image={image}
+                onTransformSuccess={fetchImages}
+              />
             ))}
           </div>
         )}
@@ -164,17 +87,23 @@ export default function DashboardPage() {
   );
 }
 
+// Export with authentication wrapper
+export default withAuth(DashboardPage);
+
 const styles = {
   container: {
-    padding: "40px",
-    maxWidth: "1200px",
+    padding: "40px 20px",
+    maxWidth: "1400px",
     margin: "0 auto",
+    minHeight: "calc(100vh - 60px)",
   } as React.CSSProperties,
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "30px",
+    marginBottom: "40px",
+    gap: "20px",
+    flexWrap: "wrap" as "wrap",
   } as React.CSSProperties,
   title: {
     fontSize: "32px",
@@ -183,102 +112,50 @@ const styles = {
     color: "#1a1a1a",
   } as React.CSSProperties,
   logoutButton: {
-    padding: "10px 20px",
+    padding: "12px 24px",
     fontSize: "14px",
     fontWeight: "600",
     color: "white",
     backgroundColor: "#dc2626",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "6px",
     cursor: "pointer",
-    transition: "background-color 0.2s",
+    transition: "all 0.2s ease",
+    boxShadow: "0 2px 4px rgba(220, 38, 38, 0.2)",
   } as React.CSSProperties,
   card: {
     backgroundColor: "white",
-    borderRadius: "8px",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-    padding: "24px",
-    marginBottom: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+    padding: "32px",
+    marginBottom: "30px",
+    border: "1px solid #f0f0f0",
   } as React.CSSProperties,
   cardTitle: {
-    fontSize: "20px",
+    fontSize: "22px",
     fontWeight: "600",
-    margin: "0 0 16px 0",
+    margin: "0 0 24px 0",
     color: "#1a1a1a",
   } as React.CSSProperties,
   cardText: {
-    fontSize: "14px",
+    fontSize: "15px",
     lineHeight: "1.6",
     color: "#666",
     margin: "0",
   } as React.CSSProperties,
-  uploadForm: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  } as React.CSSProperties,
-  fileInput: {
-    padding: "8px",
-    border: "1px solid #ddd",
-    borderRadius: "4px",
-    fontSize: "14px",
-  } as React.CSSProperties,
-  selectedFile: {
-    fontSize: "14px",
-    color: "#666",
-    margin: "0",
-  } as React.CSSProperties,
-  uploadButton: {
-    padding: "12px 24px",
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "white",
-    backgroundColor: "#2563eb",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    transition: "background-color 0.2s",
-  } as React.CSSProperties,
-  error: {
-    padding: "12px",
-    backgroundColor: "#fee2e2",
-    color: "#dc2626",
-    borderRadius: "4px",
-    fontSize: "14px",
-  } as React.CSSProperties,
-  success: {
-    padding: "12px",
-    backgroundColor: "#d1fae5",
-    color: "#059669",
-    borderRadius: "4px",
-    fontSize: "14px",
-  } as React.CSSProperties,
   imageGrid: {
     display: "grid",
-    gap: "16px",
-    gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+    gap: "24px",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
   } as React.CSSProperties,
-  imageCard: {
-    border: "1px solid #e5e7eb",
-    borderRadius: "8px",
-    padding: "16px",
-    backgroundColor: "#f9fafb",
-  } as React.CSSProperties,
-  imageInfo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  } as React.CSSProperties,
-  imageName: {
-    fontSize: "16px",
-    fontWeight: "600",
-    color: "#1a1a1a",
-    margin: "0",
-    wordBreak: "break-word",
-  } as React.CSSProperties,
-  imageMeta: {
+  error: {
+    padding: "14px 18px",
+    backgroundColor: "#fee2e2",
+    color: "#dc2626",
+    borderRadius: "6px",
     fontSize: "14px",
-    color: "#666",
-    margin: "0",
+    border: "1px solid #fecaca",
+    lineHeight: "1.5",
   } as React.CSSProperties,
 };
+
