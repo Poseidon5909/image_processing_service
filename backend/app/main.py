@@ -53,22 +53,23 @@ from app.config import settings
 
 app = FastAPI()
 
-# Configure CORS - must be before other middleware
+# Configure rate limiter first
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+# Configure CORS - MUST be added LAST so it executes FIRST
 allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
 print(f"🔧 CORS Origins configured: {allowed_origins}")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],  # Allow all origins temporarily for testing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
     max_age=3600,
 )
-
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_middleware(SlowAPIMiddleware)
 
 
 @app.exception_handler(RateLimitExceeded)
@@ -79,6 +80,16 @@ def rate_limit_handler(request, exc):
     )
 
 Base.metadata.create_all(bind=engine)
+
+
+@app.get("/")
+def root():
+    """Root endpoint"""
+    return {
+        "message": "Image Processing API",
+        "status": "running",
+        "docs": "/docs"
+    }
 
 
 @app.get("/health")
