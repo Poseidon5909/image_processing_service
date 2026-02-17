@@ -49,16 +49,18 @@ from app.models import User, Image
 from app.schemas import UserCreate, UserLogin
 from app.security import hash_password, verify_password
 from app.jwt import create_access_token
+from app.config import settings
 
 app = FastAPI()
 
 # Configure CORS
+allowed_origins = settings.CORS_ORIGINS.split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 limiter = Limiter(key_func=get_remote_address)

@@ -21,6 +21,8 @@ services:
         value: local
       - key: UPLOAD_DIR
         value: uploads
+      - key: CORS_ORIGINS
+        value: http://localhost:3000,https://your-app.vercel.app
       - key: PYTHON_VERSION
         value: 3.11.0
 
