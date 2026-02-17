@@ -54,7 +54,8 @@ from app.config import settings
 app = FastAPI()
 
 # Configure CORS
-allowed_origins = settings.CORS_ORIGINS.split(",")
+allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+print(f"🔧 CORS Origins configured: {allowed_origins}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
