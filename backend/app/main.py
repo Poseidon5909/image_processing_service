@@ -53,7 +53,7 @@ from app.config import settings
 
 app = FastAPI()
 
-# Configure CORS
+# Configure CORS - must be before other middleware
 allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
 print(f"🔧 CORS Origins configured: {allowed_origins}")
 app.add_middleware(
@@ -62,6 +62,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 limiter = Limiter(key_func=get_remote_address)
@@ -77,6 +79,16 @@ def rate_limit_handler(request, exc):
     )
 
 Base.metadata.create_all(bind=engine)
+
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint to test CORS"""
+    return {
+        "status": "healthy",
+        "cors_origins": settings.CORS_ORIGINS,
+        "message": "API is running"
+    }
 
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
