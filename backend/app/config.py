@@ -4,15 +4,15 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str
+    DATABASE_URL: str = "sqlite:///./app.db"
 
     # JWT
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    SECRET_KEY: str = "supersecretkey"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # Storage
-    STORAGE_BACKEND: str 
+    STORAGE_BACKEND: str = "local"
     UPLOAD_DIR: str = "uploads"
 
     # S3

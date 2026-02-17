@@ -3,11 +3,14 @@ services:
     name: image-processing-api
     runtime: python
     plan: free
+    rootDir: backend
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "cd app && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: image-processing-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: ALGORITHM
