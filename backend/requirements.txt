@@ -9,6 +9,7 @@ h11==0.16.0
 idna==3.11
 pydantic==2.12.5
 pydantic_core==2.41.5
+pydantic-settings==2.2.1
 psycopg2-binary
 python-dotenv
 sqlalchemy
@@ -19,3 +20,4 @@ uvicorn==0.40.0
 passlib[argon2]
 python-jose[cryptography]
 Pillow
+slowapi==0.1.9

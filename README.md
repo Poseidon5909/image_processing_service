@@ -210,9 +210,9 @@ image_processing_service/
 
 ## Deployment
 
-### Frontend Deployment
+### Frontend Deployment (Vercel)
 
-The frontend is ready for deployment to Vercel or other platforms.
+The frontend is ready for deployment to Vercel.
 
 **Quick Deploy to Vercel:**
 
@@ -229,13 +229,27 @@ For detailed instructions, see [frontend/VERCEL_DEPLOY.md](frontend/VERCEL_DEPLO
 
 For other deployment options, see [frontend/DEPLOYMENT.md](frontend/DEPLOYMENT.md)
 
-### Backend Deployment
+### Backend Deployment (Render)
 
-The backend can be deployed to platforms like Railway, Render, or AWS.
+The backend can be deployed to Render with PostgreSQL database.
+
+**Quick Deploy to Render:**
+
+1. Push your code to GitHub
+2. Go to [render.com](https://render.com) and sign up with GitHub
+3. Create a PostgreSQL database
+4. Create a Web Service:
+   - Root Directory: `backend`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables (see guide)
+6. Deploy!
+
+**Complete Step-by-Step Guide:** [backend/RENDER_DEPLOY.md](backend/RENDER_DEPLOY.md)
 
 **Requirements:**
-- PostgreSQL database
-- Python 3.8+
+- PostgreSQL database (Render provides free tier)
+- Python 3.11+
 - Environment variables configured
 
 ## License
