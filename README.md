@@ -208,6 +208,36 @@ image_processing_service/
         └── config.ts            # Frontend configuration
 ```
 
+## Deployment
+
+### Frontend Deployment
+
+The frontend is ready for deployment to Vercel or other platforms.
+
+**Quick Deploy to Vercel:**
+
+1. Push your code to GitHub
+2. Go to [vercel.com/new](https://vercel.com/new)
+3. Import your repository
+4. Set root directory to `frontend`
+5. Add environment variables:
+   - `NEXT_PUBLIC_API_URL`: Your backend API URL
+   - `NEXT_PUBLIC_ENV`: `production`
+6. Click Deploy
+
+For detailed instructions, see [frontend/VERCEL_DEPLOY.md](frontend/VERCEL_DEPLOY.md)
+
+For other deployment options, see [frontend/DEPLOYMENT.md](frontend/DEPLOYMENT.md)
+
+### Backend Deployment
+
+The backend can be deployed to platforms like Railway, Render, or AWS.
+
+**Requirements:**
+- PostgreSQL database
+- Python 3.8+
+- Environment variables configured
+
 ## License
 
 This project is open source and available for educational purposes.
