@@ -20,6 +20,7 @@ typing_extensions==4.15.0
 uvicorn==0.40.0
 passlib[argon2]
 python-jose[cryptography]
+bcrypt
 Pillow
 boto3
 slowapi==0.1.9
