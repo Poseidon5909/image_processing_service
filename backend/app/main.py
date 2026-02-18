@@ -45,7 +45,7 @@ if not SECRET_KEY or not ALGORITHM:
     raise ValueError(f"Missing env vars - SECRET_KEY: {bool(SECRET_KEY)}, ALGORITHM: {bool(ALGORITHM)}")
 
 from app.db import engine, Base, get_db
-from app.models import User, Image
+from app.models import User, Image, ImageTransformation
 from app.schemas import UserCreate, UserLogin
 from app.security import hash_password, verify_password
 from app.jwt import create_access_token
@@ -79,7 +79,17 @@ def rate_limit_handler(request, exc):
         content={"detail": "Rate limit exceeded. Try again later."},
     )
 
-Base.metadata.create_all(bind=engine)
+
+@app.on_event("startup")
+def startup_event():
+    """Initialize database on startup"""
+    try:
+        print("🔧 Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Database initialization error: {e}")
+        raise
 
 
 @app.get("/")
@@ -104,24 +114,34 @@ def health_check():
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.email == user.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+    try:
+        existing_user = db.query(User).filter(User.email == user.email).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        hashed_pwd = hash_password(user.password)
+
+        new_user = User(
+            email=user.email,
+            hashed_password=hashed_pwd
         )
-    hashed_pwd = hash_password(user.password)
 
-    new_user = User(
-        email=user.email,
-        hashed_password=hashed_pwd
-    )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return {"message": "User registered successfully"}
+        return {"message": "User registered successfully", "email": user.email}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Registration error: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: {str(e)}"
+        )
 
 
 from fastapi.security import OAuth2PasswordRequestForm
