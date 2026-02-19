@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr
 from typing import List
 from datetime import datetime
 
@@ -20,14 +20,6 @@ class PaginatedImages(BaseModel):
 class UserCreate(BaseModel):
   email: EmailStr
   password: str
-  
-  @validator('password')
-  def validate_password(cls, v):
-    if len(v) < 6:
-      raise ValueError('Password must be at least 6 characters')
-    if len(v) > 72:
-      raise ValueError('Password cannot exceed 72 characters')
-    return v
 
 class UserLogin(BaseModel):
   email: EmailStr

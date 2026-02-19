@@ -107,16 +107,32 @@ def health_check():
 
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
-def register(user: UserCreate, db: Session = Depends(get_db)):
+async def register(user: UserCreate, db: Session = Depends(get_db)):
     try:
+        # Validate password length
+        if len(user.password) < 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be at least 6 characters"
+            )
+        if len(user.password) > 72:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password cannot exceed 72 characters"
+            )
+        
+        # Check if user exists
         existing_user = db.query(User).filter(User.email == user.email).first()
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
+        
+        # Hash password
         hashed_pwd = hash_password(user.password)
 
+        # Create new user
         new_user = User(
             email=user.email,
             hashed_password=hashed_pwd
@@ -126,11 +142,17 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(new_user)
 
-        return {"message": "User registered successfully", "email": user.email}
+        return {
+            "message": "User registered successfully",
+            "email": user.email,
+            "id": new_user.id
+        }
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Registration error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
