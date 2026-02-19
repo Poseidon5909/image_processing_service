@@ -38,12 +38,6 @@ from app.services.image_transformer import(
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
-# Load env vars at module level
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-if not SECRET_KEY or not ALGORITHM:
-    raise ValueError(f"Missing env vars - SECRET_KEY: {bool(SECRET_KEY)}, ALGORITHM: {bool(ALGORITHM)}")
-
 from app.db import engine, Base, get_db
 from app.models import User, Image, ImageTransformation
 from app.schemas import UserCreate, UserLogin
