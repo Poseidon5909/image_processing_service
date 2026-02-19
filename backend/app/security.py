@@ -1,18 +1,19 @@
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 def hash_password(password: str) -> str:
-    # Bcrypt has a 72-byte limit, ensure password is within limit
-    if len(password) > 72:
-        password = password[:72]
-    return pwd_context.hash(password)
+    """Hash password using bcrypt directly"""
+    # Ensure password is within bcrypt's 72-byte limit
+    password_bytes = password.encode('utf-8')[:72]
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # Truncate to match  the hashing behavior
-    if len(plain_password) > 72:
-        plain_password = plain_password[:72]
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify password against hash"""
+    # Ensure password is within bcrypt's 72-byte limit
+    password_bytes = plain_password.encode('utf-8')[:72]
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
