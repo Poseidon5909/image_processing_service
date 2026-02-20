@@ -277,10 +277,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is open source and available under the MIT License.
 
 ## 👤 Author
+Poseidon5909
 
 **Your Name**
 
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@Poseidon5909](https://github.com/Poseidon5909)
 
 ## 🙏 Acknowledgments
 
